@@ -2,15 +2,15 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-#define WLAN_SSID       "DIPLOMADO-CIC40"
+#define WLAN_SSID       ""
 #define WLAN_PASS       ""
 
 #define AIO_SERVER      "io.adafruit.com"
 #define AIO_SERVERPORT  1883                   // use 8883 for SSL
-#define AIO_USERNAME  "ilnetintel"
-#define AIO_KEY       "dffd998265cc4156a93bd680561bcf52"
+#define AIO_USERNAME    ""
+#define AIO_KEY         ""
 
-//HARDWARE
+//HARDWARE NodeMCU_V1CP2102
 #define LED_TEST 16
 #define BTN_FLASH 0
 #define LED_TX  2
@@ -29,16 +29,20 @@ Adafruit_MQTT_Publish button = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds
 Adafruit_MQTT_Subscribe led = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/led");
 
 void MQTT_connect();
-bool flash;
 
 void setup() {
   Serial.begin(115200);
   delay(10);
 
+  //Ports_Configuration
   pinMode(LED_TEST, OUTPUT);
-  digitalWrite(LED_TEST, !LOW);
+  digitalWrite(LED_TEST, !LOW);  //Turnoff
   pinMode(BTN_FLASH, INPUT);
 
+  //Interrupts
+  attachInterrupt(digitalPinToInterrupt(BTN_FLASH), upload, CHANGE);
+
+  //Start info
   Serial.println(F("Adafruit MQTT demo"));
 
   // Connect to WiFi access point.
@@ -60,7 +64,6 @@ void setup() {
   mqtt.subscribe(&led);
 }
 
-uint32_t x=0;
 
 void loop() {
   MQTT_connect();
@@ -81,8 +84,11 @@ void loop() {
       }     
     }
   }
+}
 
+void upload() {
   // Notice MQTT button state
+  bool flash;
   flash = !digitalRead(BTN_FLASH);
   // Now we can publish stuff!
   Serial.print(F("\nSending button val "));
@@ -95,7 +101,6 @@ void loop() {
     Serial.println(F("OK!"));
   }
 }
-
 
 void MQTT_connect() {
   int8_t ret;
